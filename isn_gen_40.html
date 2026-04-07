@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISN Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+#loginOverlay{position:fixed;inset:0;background:#f0ede8;z-index:9999;display:flex;align-items:center;justify-content:center}
+#loginBox{background:#fff;border-radius:16px;border:1px solid #e0ddd8;padding:2.5rem 2rem;text-align:center;max-width:380px;width:90%;box-shadow:0 4px 24px rgba(0,0,0,0.08)}
+#loginBox h2{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:#1a1a1a;margin-bottom:8px}
+#loginBox p{font-size:14px;color:#666;margin-bottom:16px;line-height:1.5}
+#loginBox input{width:100%;padding:10px 12px;border:1px solid #e0ddd8;border-radius:8px;font-size:14px;margin-bottom:6px;font-family:inherit;outline:none;box-sizing:border-box}
+#loginBox input.error{border-color:#dc2626}
+#loginBox .err-msg{font-size:12px;color:#dc2626;margin-bottom:6px;display:none;text-align:left}
+#loginBox button{width:100%;padding:12px;background:#f55036;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;margin-top:4px}
+#loginBox button:hover{background:#d43e28}
+#loginBox .divider{display:flex;align-items:center;gap:8px;margin:12px 0}
+#loginBox .divider::before,#loginBox .divider::after{content:'';flex:1;height:1px;background:#e0ddd8}
+#loginBox .divider span{font-size:12px;color:#bbb}
+</style>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#f55036;--accent-dark:#d43e28;--accent-bg:#fff0ee;--bg:#f0ede8;--surface:#fff;--border:#e0ddd8;--text:#1a1a1a;--muted:#666;--faint:#bbb}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);min-height:100vh;color:var(--text)}
+header{background:#1a1a1a;padding:16px 2rem;display:flex;align-items:center;justify-content:space-between}
+header h1{font-family:'Playfair Display',serif;color:#fff;font-size:22px;font-weight:700}
+header span{font-size:12px;color:#888;letter-spacing:0.05em;text-transform:uppercase}
+.hero{background:#fff;border-bottom:1px solid var(--border);padding:2.5rem 2rem 2rem;text-align:center}
+.hero h2{font-family:'Playfair Display',serif;font-size:36px;font-weight:900;color:var(--text);line-height:1.1;margin-bottom:10px}
+.hero h2 em{color:var(--accent);font-style:normal}
+.hero p{font-size:15px;color:var(--muted);max-width:480px;margin:0 auto}
+.main{max-width:700px;margin:2rem auto;padding:0 1rem 4rem}
+.card{background:var(--surface);border-radius:14px;border:1px solid var(--border);padding:1.75rem;margin-bottom:1.25rem}
+.card-title{font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--faint);margin-bottom:1rem}
+input[type=text]{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:#fff;outline:none;transition:border-color 0.15s}
+input[type=text]:focus{border-color:var(--accent)}
+.upload-zone{border:1.5px dashed var(--border);border-radius:10px;padding:1.5rem;text-align:center;cursor:pointer;background:#faf9f7;transition:all 0.15s;margin-bottom:12px}
+.upload-zone:hover{border-color:var(--accent);background:#fff}
+.upload-zone.has-img{padding:0;overflow:hidden;border-style:solid}
+.upload-zone.has-img img{width:100%;max-height:200px;object-fit:cover;display:block;border-radius:8px}
+#fileInput{display:none}
+.uz-icon{font-size:28px;margin-bottom:6px}
+.uz-text{font-size:13px;color:var(--muted)}
+.uz-sub{font-size:11px;color:var(--faint);margin-top:3px}
+.or-divider{display:flex;align-items:center;gap:10px;margin:12px 0;font-size:12px;color:var(--faint)}
+.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+.tc{border:1.5px solid var(--border);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;background:#fff;transition:all 0.12s;user-select:none}
+.tc:hover{border-color:#aaa}
+.tc.sel{border-color:var(--accent);background:var(--accent-bg)}
+.tc .ic{font-size:20px;font-weight:900;color:var(--accent);margin-bottom:5px;font-family:'Playfair Display',serif}
+.tc .nm{font-size:13px;font-weight:500;color:var(--text)}
+.tc .ds{font-size:11px;color:var(--faint);margin-top:3px}
+.tc.sel .nm{color:var(--accent-dark)}
+.meta-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.meta-row input{margin:0}
+.generate-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:background 0.15s;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px}
+.generate-btn:hover{background:var(--accent-dark)}
+.generate-btn:disabled{background:var(--faint);cursor:not-allowed}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-box{padding:12px 16px;border-radius:8px;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;font-size:13px;margin-top:10px;display:none;line-height:1.5}
+.ai-indicator{font-size:12px;color:var(--muted);margin-top:10px;text-align:center;min-height:18px;font-weight:500}
+.output-card{background:#fff;border-radius:14px;border:1px solid var(--border);overflow:hidden;margin-top:1.5rem;display:none}
+.output-header{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:#faf9f7}
+.output-header span{font-size:13px;font-weight:500;color:var(--muted)}
+.output-actions{display:flex;gap:8px}
+.action-btn{font-size:12px;padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s}
+.action-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.action-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.action-btn.primary:hover{background:var(--accent-dark)}
+.output-preview{padding:1.5rem}
+.output-preview iframe{width:100%;height:500px;border:1px solid var(--border);border-radius:8px}
+footer{text-align:center;padding:2rem;font-size:12px;color:var(--faint)}
+</style>
+</head>
+<body>
+
+<div id="loginOverlay">
+  <div id="loginBox">
+    <h2>ISN Generator</h2>
+    <p>Sign in to continue. Your usage will be recorded.</p>
+    <div id="g_id_onload"
+      data-client_id="819604564390-o3ua1l6rmbhpv3pkupd9i2aovif1avru.apps.googleusercontent.com"
+      data-callback="handleGoogleLogin"
+      data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin"
+      data-type="standard"
+      data-size="large"
+      data-theme="outline"
+      data-text="sign_in_with"
+      data-shape="rectangular"
+      data-logo_alignment="left"
+      style="display:flex;justify-content:center">
+    </div>
+    <div class="divider"><span>or</span></div>
+    <input type="text" id="loginName" placeholder="Your full name" autocomplete="name">
+    <div class="err-msg" id="nameErr">Please enter your full name.</div>
+    <input type="email" id="loginEmail" placeholder="Your email address" autocomplete="email">
+    <div class="err-msg" id="emailErr">Please enter a valid email address.</div>
+    <button onclick="doLogin()">Continue →</button>
+  </div>
+</div>
+<header>
+<h1>ISN Generator</h1>
+<span>Groq + Cohere fallback</span>
+</header>
+
+<div class="hero">
+<h2>Make your <em>ISN</em> in seconds</h2>
+<p>Upload your assignment image or type the topic. Pick a format. Get a printable HTML file instantly.</p>
+</div>
+
+<div class="main">
+
+<div class="card">
+<div class="card-title">Step 1 — Assignment</div>
+<div class="upload-zone" id="uploadZone">
+<input type="file" id="fileInput" accept="image/*">
+<div id="uploadPh">
+<div class="uz-icon">📎</div>
+<div class="uz-text">Click to upload assignment image</div>
+<div class="uz-sub">PNG, JPG, or screenshot — AI reads the topic automatically</div>
+</div>
+<div id="imgWrap" style="display:none;position:relative">
+<img id="previewImg" src="" alt="">
+<button onclick="clearImage(event)" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.55);color:#fff;border:none;border-radius:20px;padding:4px 12px;font-size:11px;cursor:pointer;font-family:inherit">change</button>
+</div>
+</div>
+<div class="or-divider">or type the topic</div>
+<input type="text" id="topicInput" placeholder="e.g. World War 2, photosynthesis, the water cycle...">
+</div>
+
+<div class="card">
+<div class="card-title">Step 2 — ISN format</div>
+<div class="type-grid">
+<div class="tc sel" data-t="acrostic">
+<div class="ic">ABC</div>
+<div class="nm">Acrostic poem</div>
+<div class="ds">Letters spell the topic</div>
+</div>
+<div class="tc" data-t="riddle">
+<div class="ic">???</div>
+<div class="nm">Riddle card</div>
+<div class="ds">Clues + answer reveal</div>
+</div>
+<div class="tc" data-t="pyramid">
+<div class="ic">▲</div>
+<div class="nm">Vocab pyramid</div>
+<div class="ds">5-level vocab build</div>
+</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-title">Step 3 — Your info (optional)</div>
+<div class="meta-row">
+<input type="text" id="studentName" placeholder="Your name">
+<input type="text" id="className" placeholder="Class / Period">
+<input type="text" id="dueDate" placeholder="Date">
+</div>
+</div>
+
+<button class="generate-btn" id="generateBtn" onclick="generate()">
+<div class="spinner" id="spinner"></div>
+<span id="btnText">Generate my ISN</span>
+</button>
+<div class="error-box" id="errorBox"></div>
+<div class="ai-indicator" id="aiIndicator"></div>
+
+<div class="output-card" id="outputCard">
+<div class="output-header">
+<span id="outputLabel">Your ISN is ready</span>
+<div class="output-actions">
+<button class="action-btn" onclick="copyHTML()">Copy HTML</button>
+<button class="action-btn primary" onclick="downloadHTML()">Download file</button>
+</div>
+</div>
+<div class="output-preview">
+<iframe id="previewFrame" sandbox="allow-same-origin"></iframe>
+</div>
+</div>
+
+</div>
+
+<footer>ISN Generator</footer>
+
+<script>
+// ============================================================
+// PASTE YOUR API KEYS HERE
+// Groq free key: console.groq.com
+// Cohere free key: dashboard.cohere.com
+// ============================================================
+const GROQ_KEY = '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';
+const COHERE_KEY = 'mb5ASWII2dGymA865xwYxGfJEcTbyjDrqdTvR6El';
+
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzTXeljlmWPKyTMRuqaoQe7oYglHyT8MFj33lsvL1GqTls5NXQcRL89CVMdkrjVdh47/exec';
+let currentUser = null;
+let useCount = parseInt(localStorage.getItem('isn_use_count') || '0');
+
+function handleGoogleLogin(response) {
+  const base64 = response.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+  const payload = JSON.parse(atob(base64));
+  currentUser = { name: payload.name || '', email: payload.email || '' };
+  document.getElementById('loginOverlay').style.display = 'none';
+  const nf = document.getElementById('studentName');
+  if (!nf.value) nf.value = payload.name || '';
+}
+
+function doLogin() {
+  const name = document.getElementById('loginName').value.trim();
+  const email = document.getElementById('loginEmail').value.trim();
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  let valid = true;
+  if (!name) { document.getElementById('loginName').classList.add('error'); document.getElementById('nameErr').style.display='block'; valid=false; }
+  else { document.getElementById('loginName').classList.remove('error'); document.getElementById('nameErr').style.display='none'; }
+  if (!emailValid) { document.getElementById('loginEmail').classList.add('error'); document.getElementById('emailErr').style.display='block'; valid=false; }
+  else { document.getElementById('loginEmail').classList.remove('error'); document.getElementById('emailErr').style.display='none'; }
+  if (!valid) return;
+  currentUser = { name, email };
+  document.getElementById('loginOverlay').style.display = 'none';
+  const nf = document.getElementById('studentName');
+  if (!nf.value) nf.value = name;
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.getElementById('loginOverlay').style.display !== 'none') doLogin();
+});
+
+async function getUserIP() {
+  try { const r = await fetch('https://api.ipify.org?format=json'); const d = await r.json(); return d.ip; } catch(e) { return 'Unknown'; }
+}
+
+async function logToSheet(topic, format) {
+  try {
+    const ip = await getUserIP();
+    useCount++;
+    localStorage.setItem('isn_use_count', useCount);
+    const name = currentUser ? currentUser.name : '(no name)';
+    const email = currentUser ? currentUser.email : '(no email)';
+    fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ name, email, ip, topic, format, use_count: useCount }) });
+  } catch(e) { console.warn('Tracking failed:', e); }
+}
+// ============================================================
+
+// ============================================================
+// USAGE TRACKING — Google Sheets
+// ============================================================
+
+// ============================================================
+
+let selectedType = 'acrostic';
+let imageBase64 = null;
+let imageMime = 'image/jpeg';
+let generatedHTML = '';
+
+document.querySelectorAll('.tc').forEach(c => {
+c.addEventListener('click', () => {
+document.querySelectorAll('.tc').forEach(x => x.classList.remove('sel'));
+c.classList.add('sel');
+selectedType = c.dataset.t;
+});
+});
+
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+uploadZone.addEventListener('click', e => { if (e.target.tagName === 'BUTTON') return; fileInput.click(); });
+fileInput.addEventListener('change', e => {
+const file = e.target.files[0];
+if (!file) return;
+imageMime = file.type || 'image/jpeg';
+const reader = new FileReader();
+reader.onload = ev => {
+imageBase64 = ev.target.result.split(',')[1];
+document.getElementById('previewImg').src = ev.target.result;
+document.getElementById('uploadPh').style.display = 'none';
+document.getElementById('imgWrap').style.display = 'block';
+uploadZone.classList.add('has-img');
+};
+reader.readAsDataURL(file);
+});
+
+function clearImage(e) {
+e.stopPropagation();
+imageBase64 = null;
+document.getElementById('previewImg').src = '';
+document.getElementById('uploadPh').style.display = 'block';
+document.getElementById('imgWrap').style.display = 'none';
+uploadZone.classList.remove('has-img');
+fileInput.value = '';
+}
+
+const PROMPTS = {
+acrostic: t => `You are generating content for a school ISN assignment. Topic: "${t}". Create an ACROSTIC POEM: pick the single most important word from the topic. Each letter of that word starts a new line. Each line must be a SHORT punchy sentence of exactly 4-6 words that states one fact about the topic. Keep every line brief and snappy. Respond ONLY with raw JSON, no markdown fences, no extra text: {"word":"CHOSEN_WORD","topic":"${t}","lines":["A — short fact here","B — another short fact"]}`,
+riddle: t => `You are generating content for a school ISN assignment. Topic: "${t}". Create a JOKE CARD about this topic. Write one funny school-appropriate joke where the setup is related to the topic. Format: the "front" is the joke question/setup, the "back" is the punchline/answer. Respond ONLY with raw JSON, no markdown fences: {"topic":"${t}","front":"Why did... (joke setup about the topic)?","back":"Because... (punchline)"}`,
+pyramid: t => `You are generating content for a school ISN assignment. Topic: "${t}". Create a CONCEPT PYRAMID that goes from vague/broad at the bottom to very specific at the top. Level 1 (bottom, widest) = the most broad/vague category this topic belongs to (1 word). Level 2 = slightly more specific (1 word). Level 3 = more specific still (1 word). Level 4 = even more specific (1 word). Level 5 (top, narrowest) = the exact specific topic or a key specific term (1 word). Each level narrows down from the previous. Also write a one-sentence explanation for each word showing how it narrows down. Respond ONLY with raw JSON, no markdown fences: {"topic":"${t}","levels":[["broad category"],["more specific"],["more specific"],["very specific"],["exact topic"]],"definitions":{"word":"explanation of how this narrows down"}}`
+};
+
+const VISION = {
+acrostic: `Look at this assignment image and identify the main topic. Create an ACROSTIC POEM ISN: pick the most important word, each letter starts a line with a SHORT punchy sentence of exactly 4-6 words about the topic. Keep every line brief. Respond ONLY with raw JSON: {"word":"WORD","topic":"detected topic","lines":["A — short fact","B — short fact"]}`,
+riddle: `Look at this assignment image and identify the main topic. Create a JOKE CARD about the topic: one funny school-appropriate joke where the front is the setup/question and the back is the punchline. Respond ONLY with raw JSON: {"topic":"detected topic","front":"Why did... (joke setup)?","back":"Because... (punchline)"}`,
+pyramid: `Look at this assignment image and identify the main topic. Create a CONCEPT PYRAMID going from vague/broad at bottom (level 1) to very specific at top (level 5), each level a single word narrowing down toward the exact topic. Include a one-sentence explanation for each. Respond ONLY with raw JSON: {"topic":"detected topic","levels":[["broad"],["specific"],["more specific"],["very specific"],["exact"]],"definitions":{"word":"explanation"}}`
+};
+
+async function tryGroq(messages, useVision) {
+const model = useVision ? 'llama-3.2-11b-vision-preview' : 'llama-3.3-70b-versatile';
+const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
+body: JSON.stringify({ model, max_tokens: 1500, temperature: 0.7, messages })
+});
+const data = await res.json();
+if (data.error) throw new Error('Groq: ' + data.error.message);
+return data.choices[0].message.content;
+}
+
+async function tryCohere(textPrompt) {
+const res = await fetch('https://api.cohere.com/v2/chat', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${COHERE_KEY}` },
+body: JSON.stringify({ model: 'command-r-plus', max_tokens: 1500, temperature: 0.7, messages: [{ role: 'user', content: textPrompt }] })
+});
+const data = await res.json();
+if (data.message && !data.message.content) throw new Error('Cohere: ' + data.message);
+return data.message?.content?.[0]?.text || '';
+}
+
+function parseJSON(raw) {
+return JSON.parse(raw.replace(/```json|```/g, '').trim());
+}
+
+function setIndicator(msg) { document.getElementById('aiIndicator').textContent = msg; }
+
+async function callWithFallback(messages, textPrompt, useVision) {
+if (GROQ_KEY !== 'PASTE_GROQ_KEY_HERE') {
+try {
+setIndicator('🟢 Using Groq...');
+const result = await tryGroq(messages, useVision);
+setIndicator('🟢 Generated with Groq');
+return result;
+} catch(e) {
+setIndicator('🟡 Groq hit a limit — switching to Cohere...');
+}
+}
+if (COHERE_KEY !== 'PASTE_COHERE_KEY_HERE') {
+try {
+const result = await tryCohere(textPrompt);
+setIndicator('🟣 Generated with Cohere');
+return result;
+} catch(e) {
+throw new Error('Cohere also failed: ' + e.message);
+}
+}
+throw new Error('No API keys set. Open index.html and paste your keys at the top of the script.');
+}
+
+async function generate() {
+const topic = document.getElementById('topicInput').value.trim();
+if (!imageBase64 && !topic) { showError('Please upload an image or type a topic.'); return; }
+
+const btn = document.getElementById('generateBtn');
+const spinner = document.getElementById('spinner');
+btn.disabled = true;
+spinner.style.display = 'block';
+document.getElementById('btnText').textContent = 'Generating...';
+hideError();
+setIndicator('');
+document.getElementById('outputCard').style.display = 'none';
+
+const meta = {
+name: document.getElementById('studentName').value.trim(),
+class: document.getElementById('className').value.trim(),
+date: document.getElementById('dueDate').value.trim()
+};
+
+const useVision = !!imageBase64;
+const textPrompt = useVision ? VISION[selectedType] : PROMPTS[selectedType](topic);
+const messages = useVision
+? [{ role: 'user', content: [
+{ type: 'image_url', image_url: { url: `data:${imageMime};base64,${imageBase64}` } },
+{ type: 'text', text: VISION[selectedType] }
+]}]
+: [{ role: 'user', content: textPrompt }];
+
+try {
+const raw = await callWithFallback(messages, textPrompt, useVision);
+const parsed = parseJSON(raw);
+if (selectedType === 'acrostic') generatedHTML = buildAcrostic(parsed, meta);
+else if (selectedType === 'riddle') generatedHTML = buildRiddle(parsed, meta);
+else generatedHTML = buildPyramid(parsed, meta);
+logToSheet(parsed.topic || topic, selectedType);
+document.getElementById('previewFrame').srcdoc = generatedHTML;
+document.getElementById('outputLabel').textContent = `${parsed.topic} — ${selectedType} ready`;
+document.getElementById('outputCard').style.display = 'block';
+document.getElementById('outputCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+} catch(err) {
+showError(err.message);
+setIndicator('🔴 Generation failed');
+}
+
+btn.disabled = false;
+spinner.style.display = 'none';
+document.getElementById('btnText').textContent = 'Generate my ISN';
+}
+
+function buildPage(topic, format, meta, body, css) {
+return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ISN — ${topic}</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#f0ede8;padding:2rem 1rem;min-height:100vh}.page{max-width:680px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.1)}.top-bar{background:#faf9f7;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e8e5e0}.top-bar span{font-size:12px;color:#aaa}.print-btn{background:#f55036;color:#fff;border:none;border-radius:6px;padding:7px 18px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit}.print-btn:hover{background:#d43e28}.page-header{background:#1a1a1a;padding:1.75rem 2rem}.format-tag{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#888;margin-bottom:6px;font-weight:500}.page-title{font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:#fff;line-height:1.1}.meta-bar{display:flex;border-bottom:1px solid #e8e5e0}.meta-cell{flex:1;padding:10px 16px;border-right:1px solid #e8e5e0;font-size:12px}.meta-cell:last-child{border-right:none}.meta-label{color:#aaa;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px}.meta-value{color:#1a1a1a;font-weight:500;min-height:18px;border-bottom:1px solid #e0ddd8;padding-bottom:2px}.page-body{padding:2rem}@media print{.top-bar{display:none}.page{box-shadow:none;border-radius:0;max-width:100%}}${css}</style>
+</head><body><div class="page">
+<div class="top-bar"><span>ISN — ${format}</span><button class="print-btn" onclick="window.print()">Print / Save as PDF</button></div>
+<div class="page-header"><div class="format-tag">ISN — ${format}</div><div class="page-title">${topic}</div></div>
+<div class="meta-bar">
+<div class="meta-cell"><div class="meta-label">Name</div><div class="meta-value">${meta.name||''}</div></div>
+<div class="meta-cell"><div class="meta-label">Class / Period</div><div class="meta-value">${meta.class||''}</div></div>
+<div class="meta-cell"><div class="meta-label">Date</div><div class="meta-value">${meta.date||''}</div></div>
+</div>
+<div class="page-body">${body}</div>
+</div></body></html>`;
+}
+
+function buildAcrostic(d, meta) {
+const lines = d.lines.map(l => {
+const m = l.match(/^([A-Za-z])\s*[—–\-]\s*(.+)/);
+if (m) return `<div class="line"><span class="letter">${m[1].toUpperCase()}</span><span class="linetext">${m[2]}</span></div>`;
+return `<div class="line"><span class="linetext">${l}</span></div>`;
+}).join('');
+return buildPage(d.topic, 'Acrostic Poem', meta,
+`<div class="word-label">${d.word||''}</div><div class="lines">${lines}</div>`,
+`.word-label{font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:#aaa;margin-bottom:1.25rem;font-weight:500}.lines{display:flex;flex-direction:column;gap:10px}.line{display:flex;align-items:center;gap:16px}.letter{font-size:38px;font-weight:900;color:#f55036;font-family:'Playfair Display',serif;line-height:1;min-width:44px}.linetext{font-size:15px;font-weight:500;color:#1a1a1a;line-height:1.3}`);
+}
+
+function buildRiddle(d, meta) {
+return buildPage(d.topic, 'Joke Card', meta,
+`<div class="joke-wrap">
+<div class="joke-front">
+<div class="joke-label">The joke</div>
+<div class="joke-text">${d.front||''}</div>
+</div>
+<div class="joke-divider"></div>
+<div class="joke-back">
+<div class="joke-label">The answer</div>
+<details class="answer-box"><summary>Reveal punchline</summary><div class="punchline">${d.back||''}</div></details>
+</div>
+</div>`,
+`.joke-wrap{display:flex;flex-direction:column;gap:0}.joke-front{background:#fff8f6;border:2px solid #f55036;border-radius:12px 12px 0 0;padding:2rem;text-align:center}.joke-back{background:#faf9f7;border:2px solid #f55036;border-top:none;border-radius:0 0 12px 12px;padding:1.5rem;text-align:center}.joke-label{font-size:10px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:#f55036;margin-bottom:12px}.joke-divider{height:2px;background:repeating-linear-gradient(90deg,#f55036 0,#f55036 8px,transparent 8px,transparent 16px)}.joke-text{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#1a1a1a;line-height:1.4}.answer-box summary{font-size:13px;cursor:pointer;color:#f55036;font-weight:500;padding:8px 20px;border:1.5px solid #f55036;border-radius:8px;display:inline-block;user-select:none;list-style:none;margin-top:4px}.answer-box[open] summary{background:#f55036;color:#fff}.punchline{margin-top:16px;font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#1a1a1a;line-height:1.4}`);
+}
+
+function buildPyramid(d, meta) {
+// levels[0] = broad (bottom), levels[4] = specific (top)
+// Render top-to-bottom visually: level 5 at top (narrow), level 1 at bottom (wide)
+const rendered = [...d.levels].reverse().map((words, ri) => {
+const lvl = d.levels.length - ri;
+const word = words[0] || '';
+const widthPct = 20 + (d.levels.length - ri) * (78 / d.levels.length);
+const label = lvl === 1 ? 'Broad' : lvl === d.levels.length ? 'Specific' : '';
+return `<div class="plevel" style="width:${widthPct}%">
+<div class="plevel-inner">
+<span class="plevel-word">${word}</span>
+${label ? `<span class="plevel-tag">${label}</span>` : ''}
+</div>
+</div>`;
+}).join('');
+const defs = Object.entries(d.definitions||{}).map(([w,def]) =>
+`<div class="def-row"><span class="def-word">${w}</span><span class="def-text">${def}</span></div>`
+).join('');
+return buildPage(d.topic, 'Concept Pyramid', meta,
+`<div class="pyramid-wrap">
+<div class="pyr-caption top-cap">Specific</div>
+<div class="pyramid">${rendered}</div>
+<div class="pyr-caption bot-cap">Broad / Vague</div>
+</div>
+<div class="defs-label">How it narrows down</div><div class="defs">${defs}</div>`,
+`.pyramid-wrap{margin-bottom:1.5rem}.pyr-caption{font-size:11px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#f55036;text-align:center;padding:4px 0}.pyramid{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0}.plevel{transition:all 0.2s}.plevel-inner{background:#fff0ee;border:2px solid #f55036;border-radius:8px;padding:10px 18px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px}.plevel-word{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#1a1a1a}.plevel-tag{font-size:9px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#f55036;background:#fff;border:1px solid #f55036;border-radius:10px;padding:2px 7px}.defs-label{font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#aaa;margin-bottom:12px}.defs{display:flex;flex-direction:column;gap:8px}.def-row{display:flex;gap:14px;align-items:baseline;padding:9px 13px;background:#f9f7f4;border-radius:8px;border:1px solid #e8e5e0}.def-word{font-weight:500;color:#f55036;min-width:110px;font-size:14px}.def-text{font-size:13px;color:#444;line-height:1.5}`);
+}
+
+function downloadHTML() {
+if (!generatedHTML) return;
+const blob = new Blob([generatedHTML], {type:'text/html'});
+const a = document.createElement('a');
+a.href = URL.createObjectURL(blob);
+a.download = 'ISN.html';
+a.click();
+}
+
+function copyHTML() {
+navigator.clipboard.writeText(generatedHTML).then(() => {
+const btn = document.querySelector('.action-btn');
+btn.textContent = 'Copied!';
+setTimeout(() => btn.textContent = 'Copy HTML', 1500);
+});
+}
+
+function showError(msg) { const el = document.getElementById('errorBox'); el.textContent = msg; el.style.display = 'block'; }
+function hideError() { document.getElementById('errorBox').style.display = 'none'; }
+</script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</body>
+</html>
