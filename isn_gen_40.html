@@ -78,30 +78,64 @@ footer{text-align:center;padding:2rem;font-size:12px;color:var(--faint)}
 <body>
 
 <div id="loginOverlay">
-<div id="loginBox">
-<h2>ISN Generator</h2>
-<p>Sign in to continue. Your usage will be recorded.</p>
-<div id="g_id_onload"
-data-client_id="819604564390-o3ua1l6rmbhpv3pkupd9i2aovif1avru.apps.googleusercontent.com"
-data-callback="handleGoogleLogin"
-data-auto_prompt="false">
-</div>
-<div class="g_id_signin"
-data-type="standard"
-data-size="large"
-data-theme="outline"
-data-text="sign_in_with"
-data-shape="rectangular"
-data-logo_alignment="left"
-style="display:flex;justify-content:center">
-</div>
-<div class="divider"><span>or</span></div>
-<input type="text" id="loginName" placeholder="Your full name" autocomplete="name">
-<div class="err-msg" id="nameErr">Please enter your full name.</div>
-<input type="email" id="loginEmail" placeholder="Your email address" autocomplete="email">
-<div class="err-msg" id="emailErr">Please enter a valid email address.</div>
-<button onclick="doLogin()">Continue →</button>
-</div>
+  <div id="loginBox">
+    <h2>ISN Generator</h2>
+    <p>Sign in to continue. Your usage will be recorded.</p>
+    <div id="g_id_onload"
+      data-client_id="819604564390-o3ua1l6rmbhpv3pkupd9i2aovif1avru.apps.googleusercontent.com"
+      data-callback="handleGoogleLogin"
+      data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin"
+      data-type="standard"
+      data-size="large"
+      data-theme="outline"
+      data-text="sign_in_with"
+      data-shape="rectangular"
+      data-logo_alignment="left"
+      style="display:flex;justify-content:center">
+    </div>
+    <div class="divider"><span>or</span></div>
+    <input type="text" id="loginName" placeholder="Your full name" autocomplete="name">
+    <div class="err-msg" id="nameErr">Please enter your full name.</div>
+    <input type="email" id="loginEmail" placeholder="Your email address" autocomplete="email">
+    <div class="err-msg" id="emailErr">Please enter a valid email address.</div>
+    <div style="text-align:left;margin:8px 0;display:flex;align-items:flex-start;gap:8px">
+      <input type="checkbox" id="tosCheck" style="width:auto;margin-top:3px;accent-color:#f55036">
+      <label for="tosCheck" style="font-size:12px;color:#666;line-height:1.5">I agree to the <a href="#" onclick="showTos(event)" style="color:#f55036;text-decoration:none;font-weight:500">Terms of Service</a>. I will not use profanity or abuse this tool.</label>
+    </div>
+    <div class="err-msg" id="tosErr" style="display:none">You must agree to the Terms of Service.</div>
+    <button onclick="doLogin()">Continue →</button>
+
+    <!-- ToS Modal -->
+    <div id="tosModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;display:none;align-items:center;justify-content:center">
+      <div style="background:#fff;border-radius:14px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto;padding:2rem;position:relative">
+        <button onclick="document.getElementById('tosModal').style.display='none'" style="position:absolute;top:12px;right:12px;background:none;border:none;font-size:20px;cursor:pointer;color:#666">×</button>
+        <h3 style="font-family:'Playfair Display',serif;font-size:20px;font-weight:900;margin-bottom:12px">Terms of Service</h3>
+        <div style="font-size:13px;color:#444;line-height:1.8">
+          <p style="margin-bottom:10px"><strong>Last updated: April 2026</strong></p>
+          <p style="margin-bottom:12px">Welcome to the ISN Generator. This tool is provided to help students complete Interactive Student Notebook (ISN) assignments quickly and effectively. By accessing or using this tool, you agree to be fully bound by the following Terms of Service. If you do not agree, do not use the tool.</p>
+
+          <p style="margin-bottom:6px"><strong>1. Eligibility & Purpose</strong><br>This tool is intended exclusively for students completing legitimate school assignments, specifically ISN-format activities such as acrostic poems, riddle cards, and concept pyramids. Use of this tool for any purpose outside of academic schoolwork is not permitted. By using this tool, you confirm that you are using it for a genuine school assignment and not for entertainment, testing, or any other unrelated purpose.</p>
+
+          <p style="margin-bottom:6px"><strong>2. Prohibited Content</strong><br>You agree that you will not, under any circumstances, submit topics or content that contain profanity, slurs, hate speech, sexual references, violent language, or any content that would be considered inappropriate in a school setting. This includes but is not limited to: offensive words, drug references, threats, or any language that violates your school's code of conduct. Attempts to bypass the content filter through misspellings, spacing, or substitutions (e.g. "f*ck", "sh1t") are also prohibited and may result in immediate access revocation.</p>
+
+          <p style="margin-bottom:6px"><strong>3. No Abuse, Spam, or Waste</strong><br>You agree not to abuse this tool in any way. This includes but is not limited to: submitting random, nonsensical, or keyboard-mashed input (e.g. "asdf", "qwerty", "aaaaaaa"); repeatedly generating content with no intention of using it for schoolwork; attempting to overload or stress-test the system; using automated scripts or bots to interact with the tool; and sharing your login credentials with others. Each generation consumes real API resources that cost money. Intentional waste is treated as theft of service and will result in permanent access revocation.</p>
+
+          <p style="margin-bottom:6px"><strong>4. Academic Integrity</strong><br>This tool is designed to assist with ISN assignments, not to replace your own learning or thinking. You are responsible for ensuring that your use of this tool complies with your school's academic integrity and AI use policies. The operator of this tool takes no responsibility for any academic dishonesty violations that may result from misuse.</p>
+
+          <p style="margin-bottom:6px"><strong>5. Account Responsibility</strong><br>You are responsible for all activity that occurs under your login. Do not share your account with others. If you believe your account has been used without your permission, you must report it immediately. The operator reserves the right to suspend or permanently revoke access for any account found to be in violation of these terms, without prior notice.</p>
+
+          <p style="margin-bottom:6px"><strong>6. No Warranty or Guarantee</strong><br>This tool is provided on an "as-is" and "as-available" basis. The operator makes no guarantees regarding uptime, accuracy of AI-generated content, or continued availability of the service. The tool may be taken offline, modified, or discontinued at any time without notice. Generated content is produced by third-party AI models and may contain errors — always review output before submitting it for school.</p>
+
+          <p style="margin-bottom:6px"><strong>7. Enforcement & Termination</strong><br>The operator reserves the right to monitor usage, investigate suspected violations, and revoke access at any time for any reason, including but not limited to violations of these terms. There is no appeal process for access revocation in cases of clear violation. Repeat offenders may be reported to school administration.</p>
+
+          <p style="margin-bottom:0"><strong>8. Changes to These Terms</strong><br>These Terms of Service may be updated at any time without prior notice. It is your responsibility to review them periodically. Continued use of the tool after any changes constitutes your acceptance of the revised terms.</p>
+        </div>
+        <button onclick="document.getElementById('tosModal').style.display='none'" style="width:100%;margin-top:16px;padding:10px;background:#f55036;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">Close</button>
+      </div>
+    </div>
+  </div>
 </div>
 <header>
 <h1>ISN Generator</h1>
@@ -201,47 +235,57 @@ let currentUser = null;
 let useCount = parseInt(localStorage.getItem('isn_use_count') || '0');
 
 function handleGoogleLogin(response) {
-const base64 = response.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
-const payload = JSON.parse(atob(base64));
-currentUser = { name: payload.name || '', email: payload.email || '' };
-document.getElementById('loginOverlay').style.display = 'none';
-const nf = document.getElementById('studentName');
-if (!nf.value) nf.value = payload.name || '';
+  const base64 = response.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+  const payload = JSON.parse(atob(base64));
+  currentUser = { name: payload.name || '', email: payload.email || '' };
+  document.getElementById('loginOverlay').style.display = 'none';
+  const nf = document.getElementById('studentName');
+  if (!nf.value) nf.value = payload.name || '';
+}
+
+function showTos(e) {
+  e.preventDefault();
+  document.getElementById('tosModal').style.display = 'flex';
 }
 
 function doLogin() {
-const name = document.getElementById('loginName').value.trim();
-const email = document.getElementById('loginEmail').value.trim();
-const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-let valid = true;
-if (!name) { document.getElementById('loginName').classList.add('error'); document.getElementById('nameErr').style.display='block'; valid=false; }
-else { document.getElementById('loginName').classList.remove('error'); document.getElementById('nameErr').style.display='none'; }
-if (!emailValid) { document.getElementById('loginEmail').classList.add('error'); document.getElementById('emailErr').style.display='block'; valid=false; }
-else { document.getElementById('loginEmail').classList.remove('error'); document.getElementById('emailErr').style.display='none'; }
-if (!valid) return;
-currentUser = { name, email };
-document.getElementById('loginOverlay').style.display = 'none';
-const nf = document.getElementById('studentName');
-if (!nf.value) nf.value = name;
+  const name = document.getElementById('loginName').value.trim();
+  const email = document.getElementById('loginEmail').value.trim();
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  let valid = true;
+  if (!name) { document.getElementById('loginName').classList.add('error'); document.getElementById('nameErr').style.display='block'; valid=false; }
+  else { document.getElementById('loginName').classList.remove('error'); document.getElementById('nameErr').style.display='none'; }
+  if (!emailValid) { document.getElementById('loginEmail').classList.add('error'); document.getElementById('emailErr').style.display='block'; valid=false; }
+  else { document.getElementById('loginEmail').classList.remove('error'); document.getElementById('emailErr').style.display='none'; }
+  if (!document.getElementById('tosCheck').checked) {
+    document.getElementById('tosErr').style.display = 'block'; valid = false;
+  } else {
+    document.getElementById('tosErr').style.display = 'none';
+  }
+  if (!valid) return;
+  currentUser = { name, email };
+  document.getElementById('loginOverlay').style.display = 'none';
+  const nf = document.getElementById('studentName');
+  if (!nf.value) nf.value = name;
 }
 
 document.addEventListener('keydown', function(e) {
-if (e.key === 'Enter' && document.getElementById('loginOverlay').style.display !== 'none') doLogin();
+  if (e.key === 'Enter' && document.getElementById('loginOverlay').style.display !== 'none') doLogin();
 });
 
 async function getUserIP() {
-try { const r = await fetch('https://api.ipify.org?format=json'); const d = await r.json(); return d.ip; } catch(e) { return 'Unknown'; }
+  try { const r = await fetch('https://api.ipify.org?format=json'); const d = await r.json(); return d.ip; } catch(e) { return 'Unknown'; }
 }
 
 async function logToSheet(topic, format) {
-try {
-const ip = await getUserIP();
-useCount++;
-localStorage.setItem('isn_use_count', useCount);
-const name = currentUser ? currentUser.name : '(no name)';
-const email = currentUser ? currentUser.email : '(no email)';
-fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ name, email, ip, topic, format, use_count: useCount }) });
-} catch(e) { console.warn('Tracking failed:', e); }
+  try {
+    const ip = await getUserIP();
+    useCount++;
+    localStorage.setItem('isn_use_count', useCount);
+    const name = currentUser ? currentUser.name : '(no name)';
+    const email = currentUser ? currentUser.email : '(no email)';
+    fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ name, email, ip, topic, format, use_count: useCount }) });
+  } catch(e) { console.warn('Tracking failed:', e); }
 }
 // ============================================================
 
@@ -250,6 +294,27 @@ fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'appli
 // ============================================================
 
 // ============================================================
+
+
+const PROFANITY = ['fuck','shit','ass','bitch','cunt','dick','cock','pussy','bastard','damn','hell','crap','piss','fag','slut','whore','nigger','nigga','retard','rape','porn','sex','nude','naked','boob','penis','vagina'];
+const JUNK = ['asdf','qwer','zxcv','aaaa','bbbb','cccc','dddd','eeee','test123','abc123','123456','random','idk','blah','blah blah','nothing','stuff','things','whatever','lol','lmao','wtf','bruh'];
+
+function containsProfanity(text) {
+  const lower = text.toLowerCase().replace(/[^a-z0-9 ]/g,'');
+  return PROFANITY.some(w => lower.split(' ').includes(w) || lower.includes(w));
+}
+
+function isJunk(text) {
+  const lower = text.trim().toLowerCase();
+  if (lower.length < 3) return true;
+  if (JUNK.some(j => lower === j || lower.includes(j))) return true;
+  // Detect keyboard mashing: ratio of repeated chars or no vowels
+  const vowels = (lower.match(/[aeiou]/g) || []).length;
+  if (lower.length > 4 && vowels === 0) return true;
+  // Detect all same character
+  if (/^(.)+$/.test(lower)) return true;
+  return false;
+}
 
 let selectedType = 'acrostic';
 let imageBase64 = null;
