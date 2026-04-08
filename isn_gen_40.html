@@ -102,7 +102,7 @@ footer{text-align:center;padding:2rem;font-size:12px;color:var(--faint)}
     <div class="err-msg" id="emailErr">Please enter a valid email address.</div>
     <div style="text-align:left;margin:8px 0;display:flex;align-items:flex-start;gap:8px">
       <input type="checkbox" id="tosCheck" style="width:auto;margin-top:3px;accent-color:#f55036">
-      <label for="tosCheck" style="font-size:12px;color:#666;line-height:1.5">I agree to the <a href="#" onclick="showTos(event)" style="color:#f55036;text-decoration:none;font-weight:500">Terms of Service</a>. I will not use profanity or abuse this tool.</label>
+      <label for="tosCheck" style="font-size:12px;color:#666;line-height:1.5">I agree to the <a href="#" onclick="showTos(event)" style="color:#f55036;text-decoration:none;font-weight:500">Terms of Service</a></label>
     </div>
     <div class="err-msg" id="tosErr" style="display:none">You must agree to the Terms of Service.</div>
     <button onclick="doLogin()">Continue →</button>
@@ -284,7 +284,8 @@ async function logToSheet(topic, format) {
     localStorage.setItem('isn_use_count', useCount);
     const name = currentUser ? currentUser.name : '(no name)';
     const email = currentUser ? currentUser.email : '(no email)';
-    fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ name, email, ip, topic, format, use_count: useCount }) });
+    const flagged = (topic && (containsProfanity(topic) || isJunk(topic))) ? 'YES ⚠️' : 'No';
+    fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ name, email, ip, topic, format, use_count: useCount, flagged }) });
   } catch(e) { console.warn('Tracking failed:', e); }
 }
 // ============================================================
