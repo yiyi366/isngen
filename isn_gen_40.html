@@ -18,6 +18,17 @@
 #loginBox .divider{display:flex;align-items:center;gap:8px;margin:12px 0}
 #loginBox .divider::before,#loginBox .divider::after{content:'';flex:1;height:1px;background:#e0ddd8}
 #loginBox .divider span{font-size:12px;color:#bbb}
+/* Payment reminder modal */
+#payOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9998;display:none;align-items:center;justify-content:center}
+#payBox{background:#fff;border-radius:16px;border:1px solid #e0ddd8;padding:2.5rem 2rem;text-align:center;max-width:360px;width:92%;box-shadow:0 8px 40px rgba(0,0,0,0.15)}
+#payBox .pay-icon{font-size:40px;margin-bottom:12px}
+#payBox h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#1a1a1a;margin-bottom:8px}
+#payBox .pay-price{font-size:38px;font-weight:900;color:#f55036;font-family:'Playfair Display',serif;margin:10px 0 6px}
+#payBox .pay-sub{font-size:13px;color:#888;margin-bottom:22px;line-height:1.5}
+#payBox .pay-confirm{width:100%;padding:13px;background:#f55036;color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:background 0.15s}
+#payBox .pay-confirm:hover{background:#d43e28}
+#payBox .pay-cancel{font-size:12px;color:#bbb;cursor:pointer;margin-top:12px;display:block}
+#payBox .pay-cancel:hover{color:#888}
 </style>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -103,6 +114,17 @@ footer{text-align:center;padding:2rem;font-size:12px;color:var(--faint)}
     <button onclick="doLogin()">Continue →</button>
   </div>
 </div>
+<!-- Payment Reminder Modal -->
+<div id="payOverlay">
+  <div id="payBox">
+    <div class="pay-icon">💵</div>
+    <h2>Remember to pay!</h2>
+    <div class="pay-price">$0.20</div>
+    <div class="pay-sub">Each ISN costs <strong>$0.20 cash</strong>.<br>Please pay after generating</div>
+    <button class="pay-confirm" onclick="confirmAndGenerate()">I agree to paying 20 cents</button>
+    <span class="pay-cancel" onclick="closePayModal()">Cancel</span>
+  </div>
+</div>
 <header>
 <h1>ISN Generator</h1>
 <span>Groq + Cohere fallback</span>
@@ -165,7 +187,7 @@ footer{text-align:center;padding:2rem;font-size:12px;color:var(--faint)}
 
 <button class="generate-btn" id="generateBtn" onclick="generate()">
 <div class="spinner" id="spinner"></div>
-<span id="btnText">Generate my ISN</span>
+<span id="btnText">Generate my ISN — $0.20</span>
 </button>
 <div class="error-box" id="errorBox"></div>
 <div class="ai-indicator" id="aiIndicator"></div>
@@ -292,16 +314,71 @@ uploadZone.classList.remove('has-img');
 fileInput.value = '';
 }
 
+// Diversity helpers — pick random items so the same topic yields different results each time
+const ACROSTIC_WORD_HINTS = [
+  'Pick whichever word from the topic has the most interesting letters.',
+  'Choose a word related to the topic that is NOT the most obvious choice.',
+  'Use the longest meaningful word you can derive from the topic.',
+  'Pick a word that captures the most surprising aspect of the topic.',
+  'Choose the word that best represents the impact or importance of the topic.',
+];
+const ACROSTIC_LINE_STYLES = [
+  'Each line should be a vivid, surprising fact that most students would not know.',
+  'Each line should focus on a cause or effect related to the topic.',
+  'Each line should mention a specific person, place, date, or number related to the topic.',
+  'Each line should describe what the topic looks, sounds, or feels like in the real world.',
+  'Each line should connect the topic to everyday student life or pop culture.',
+];
+const RIDDLE_STYLES = [
+  'Make the joke a classic "Why did X...?" format.',
+  'Make the joke a "What do you call...?" format.',
+  'Make the joke a "Knock knock" format where the topic is the punchline.',
+  'Make the joke a "What\'s the difference between X and Y?" format.',
+  'Make the joke a one-liner that starts with "I asked a..." or "My teacher said..."',
+];
+const PYRAMID_ANGLES = [
+  'Start with a very abstract philosophical concept at the base.',
+  'Start with the broadest scientific domain at the base.',
+  'Start with the broadest historical period at the base.',
+  'Focus on narrowing through geography: continent → region → country → city → exact place.',
+  'Focus on narrowing through time: era → century → decade → year → exact event.',
+];
+
+function randItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function diversityTag() { return `[Variation seed: ${Math.random().toString(36).slice(2,8)}]`; }
+
 const PROMPTS = {
-acrostic: t => `You are generating content for a school ISN assignment. Topic: "${t}". Create an ACROSTIC POEM: pick the single most important word from the topic. Each letter of that word starts a new line. Each line must be a SHORT punchy sentence of exactly 4-6 words that states one fact about the topic. Keep every line brief and snappy. Respond ONLY with raw JSON, no markdown fences, no extra text: {"word":"CHOSEN_WORD","topic":"${t}","lines":["A — short fact here","B — another short fact"]}`,
-riddle: t => `You are generating content for a school ISN assignment. Topic: "${t}". Create a JOKE CARD about this topic. Write one funny school-appropriate joke where the setup is related to the topic. Format: the "front" is the joke question/setup, the "back" is the punchline/answer. Respond ONLY with raw JSON, no markdown fences: {"topic":"${t}","front":"Why did... (joke setup about the topic)?","back":"Because... (punchline)"}`,
-pyramid: t => `You are generating content for a school ISN assignment. Topic: "${t}". Create a CONCEPT PYRAMID that goes from vague/broad at the bottom to very specific at the top. Level 1 (bottom, widest) = the most broad/vague category this topic belongs to (1 word). Level 2 = slightly more specific (1 word). Level 3 = more specific still (1 word). Level 4 = even more specific (1 word). Level 5 (top, narrowest) = the exact specific topic or a key specific term (1 word). Each level narrows down from the previous. Also write a one-sentence explanation for each word showing how it narrows down. Respond ONLY with raw JSON, no markdown fences: {"topic":"${t}","levels":[["broad category"],["more specific"],["more specific"],["very specific"],["exact topic"]],"definitions":{"word":"explanation of how this narrows down"}}`
+acrostic: t => {
+  const wh = randItem(ACROSTIC_WORD_HINTS);
+  const ls = randItem(ACROSTIC_LINE_STYLES);
+  const seed = diversityTag();
+  return `You are generating content for a school ISN assignment. ${seed} Topic: "${t}". Create an ACROSTIC POEM. Word selection hint: ${wh} Line style: ${ls} Each letter starts a new line with a SHORT punchy sentence of exactly 4-6 words. IMPORTANT: Do NOT generate the same poem as any previous attempt — be creative and unexpected. Respond ONLY with raw JSON, no markdown fences: {"word":"CHOSEN_WORD","topic":"${t}","lines":["A — short fact here","B — another short fact"]}`;
+},
+riddle: t => {
+  const rs = randItem(RIDDLE_STYLES);
+  const seed = diversityTag();
+  return `You are generating content for a school ISN assignment. ${seed} Topic: "${t}". Create a JOKE CARD. Style instruction: ${rs} Make it funny, school-appropriate, and specifically about "${t}" — not a generic joke. The "front" is the setup/question, the "back" is the punchline. IMPORTANT: Be original and unexpected, not the most obvious joke. Respond ONLY with raw JSON, no markdown fences: {"topic":"${t}","front":"(joke setup)","back":"(punchline)"}`;
+},
+pyramid: t => {
+  const pa = randItem(PYRAMID_ANGLES);
+  const seed = diversityTag();
+  return `You are generating content for a school ISN assignment. ${seed} Topic: "${t}". Create a CONCEPT PYRAMID from broad (Level 1 bottom) to specific (Level 5 top), each level one word. Angle: ${pa} Each level narrows toward the exact topic. Write a one-sentence explanation per word. IMPORTANT: Be creative — avoid the most predictable word choices. Respond ONLY with raw JSON, no markdown fences: {"topic":"${t}","levels":[["broad"],["more specific"],["more specific"],["very specific"],["exact topic"]],"definitions":{"word":"explanation"}}`;
+}
 };
 
 const VISION = {
-acrostic: `Look at this assignment image and identify the main topic. Create an ACROSTIC POEM ISN: pick the most important word, each letter starts a line with a SHORT punchy sentence of exactly 4-6 words about the topic. Keep every line brief. Respond ONLY with raw JSON: {"word":"WORD","topic":"detected topic","lines":["A — short fact","B — short fact"]}`,
-riddle: `Look at this assignment image and identify the main topic. Create a JOKE CARD about the topic: one funny school-appropriate joke where the front is the setup/question and the back is the punchline. Respond ONLY with raw JSON: {"topic":"detected topic","front":"Why did... (joke setup)?","back":"Because... (punchline)"}`,
-pyramid: `Look at this assignment image and identify the main topic. Create a CONCEPT PYRAMID going from vague/broad at bottom (level 1) to very specific at top (level 5), each level a single word narrowing down toward the exact topic. Include a one-sentence explanation for each. Respond ONLY with raw JSON: {"topic":"detected topic","levels":[["broad"],["specific"],["more specific"],["very specific"],["exact"]],"definitions":{"word":"explanation"}}`
+acrostic: () => {
+  const wh = randItem(ACROSTIC_WORD_HINTS); const ls = randItem(ACROSTIC_LINE_STYLES); const seed = diversityTag();
+  return `${seed} Look at this assignment image and identify the main topic. Create an ACROSTIC POEM ISN. Word hint: ${wh} Line style: ${ls} Each letter starts a line with a SHORT punchy sentence of exactly 4-6 words. Be original. Respond ONLY with raw JSON: {"word":"WORD","topic":"detected topic","lines":["A — short fact","B — short fact"]}`;
+},
+riddle: () => {
+  const rs = randItem(RIDDLE_STYLES); const seed = diversityTag();
+  return `${seed} Look at this assignment image and identify the main topic. Create a JOKE CARD. Style: ${rs} The "front" is the setup, the "back" is the punchline. Be original and topic-specific. Respond ONLY with raw JSON: {"topic":"detected topic","front":"(setup)","back":"(punchline)"}`;
+},
+pyramid: () => {
+  const pa = randItem(PYRAMID_ANGLES); const seed = diversityTag();
+  return `${seed} Look at this assignment image and identify the main topic. Create a CONCEPT PYRAMID from vague (Level 1) to specific (Level 5), each level one word. Angle: ${pa} Include one-sentence explanations. Respond ONLY with raw JSON: {"topic":"detected topic","levels":[["broad"],["specific"],["more specific"],["very specific"],["exact"]],"definitions":{"word":"explanation"}}`;
+}
 };
 
 async function tryGroq(messages, useVision) {
@@ -309,7 +386,7 @@ const model = useVision ? 'llama-3.2-11b-vision-preview' : 'llama-3.3-70b-versat
 const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
-body: JSON.stringify({ model, max_tokens: 1500, temperature: 0.7, messages })
+body: JSON.stringify({ model, max_tokens: 1500, temperature: 1.1, top_p: 0.95, messages })
 });
 const data = await res.json();
 if (data.error) throw new Error('Groq: ' + data.error.message);
@@ -356,9 +433,33 @@ throw new Error('Cohere also failed: ' + e.message);
 throw new Error('No API keys set. Open index.html and paste your keys at the top of the script.');
 }
 
+// ============================================================
+// PAYMENT REMINDER — $0.20 cash per ISN
+// ============================================================
+let pendingGenerate = false;
+
+function showPayModal() {
+  pendingGenerate = true;
+  document.getElementById('payOverlay').style.display = 'flex';
+}
+function closePayModal() {
+  pendingGenerate = false;
+  document.getElementById('payOverlay').style.display = 'none';
+}
+function confirmAndGenerate() {
+  document.getElementById('payOverlay').style.display = 'none';
+  doGenerate();
+}
+// ============================================================
+
 async function generate() {
 const topic = document.getElementById('topicInput').value.trim();
 if (!imageBase64 && !topic) { showError('Please upload an image or type a topic.'); return; }
+showPayModal();
+}
+
+async function doGenerate() {
+const topic = document.getElementById('topicInput').value.trim();
 
 const btn = document.getElementById('generateBtn');
 const spinner = document.getElementById('spinner');
@@ -376,11 +477,12 @@ date: document.getElementById('dueDate').value.trim()
 };
 
 const useVision = !!imageBase64;
-const textPrompt = useVision ? VISION[selectedType] : PROMPTS[selectedType](topic);
+const visionPrompt = VISION[selectedType]();
+const textPrompt = useVision ? visionPrompt : PROMPTS[selectedType](topic);
 const messages = useVision
 ? [{ role: 'user', content: [
 { type: 'image_url', image_url: { url: `data:${imageMime};base64,${imageBase64}` } },
-{ type: 'text', text: VISION[selectedType] }
+{ type: 'text', text: visionPrompt }
 ]}]
 : [{ role: 'user', content: textPrompt }];
 
@@ -402,7 +504,7 @@ setIndicator('🔴 Generation failed');
 
 btn.disabled = false;
 spinner.style.display = 'none';
-document.getElementById('btnText').textContent = 'Generate my ISN';
+document.getElementById('btnText').textContent = 'Generate my ISN — $0.20';
 }
 
 function buildPage(topic, format, meta, body, css) {
